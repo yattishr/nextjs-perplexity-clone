@@ -1,0 +1,99 @@
+'use client'
+import { useState } from 'react'
+import { Card } from '@/components/ui/card'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { ArrowRightIcon } from "@radix-ui/react-icons"
+
+export default function Home() {
+  // Initialize with empty string to ensure controlled input
+  const [query, setQuery] = useState('')
+  const [response, setResponse] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSearch = async () => {
+    if (!query.trim()) return // Prevent empty queries
+    
+    setLoading(true)
+    setResponse('')
+    
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: query }]
+        })
+      })
+
+      const reader = res.body?.getReader()
+      const decoder = new TextDecoder()
+
+      while (reader) {
+        const { done, value } = await reader.read()
+        if (done) break
+        setResponse(prev => prev + decoder.decode(value))
+      }
+    } catch (error) {
+      console.error(error)
+      setResponse('Error: Failed to fetch response')
+    } finally {
+      setLoading(false)
+    }
+  }  
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <header className="p-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">AI Search</h1>
+        <div className="flex gap-2">
+          <Button variant="ghost">History</Button>
+          <Button variant="ghost">Sign In</Button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto mt-20 px-4">
+        <div className="flex flex-col gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Input 
+                placeholder="Ask me anything..."
+                className="h-14 text-lg px-6 py-8 rounded-full shadow-lg"
+                value={query} // Controlled value
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <Button 
+                className="h-14 w-14 rounded-full p-0"
+                onClick={handleSearch}
+                disabled={loading || !query.trim()}
+              >
+                <ArrowRightIcon className="h-6 w-6" />
+              </Button>
+            </div>
+            <p className="text-center text-sm text-gray-500">
+              Start typing or try example questions
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <Card className="p-6 mt-8 min-h-[200px] bg-white shadow-lg mx-auto max-w-4xl">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+            </div>
+            <p className="text-sm text-gray-600">Generating response...</p>
+          </div>
+        ) : (
+          <div className="prose max-w-none">
+            {response || 'Your response will appear here...'}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
