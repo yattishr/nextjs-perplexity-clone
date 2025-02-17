@@ -5,10 +5,17 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ArrowRightIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons"
 
+// Define the expected API response format
+interface SearchResponse {
+  title: string
+  summary: string 
+  links: { text: string, url: string }[]
+}
+
 export default function Home() {
-  const [query, setQuery] = useState('')
-  const [response, setResponse] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [query, setQuery] = useState<string>('')
+  const [response, setResponse] = useState<SearchResponse | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
 
   // Example questions (you can make these dynamic)
   const exampleQuestions = [
@@ -26,28 +33,23 @@ export default function Home() {
     if (!query.trim()) return
     
     setLoading(true)
-    setResponse('')
+    setResponse(null)
     
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/chat/v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: query }]
-        })
+        body: JSON.stringify({ query })
       })
 
-      const reader = res.body?.getReader()
-      const decoder = new TextDecoder()
+      // const reader = res.body?.getReader()
+      // const decoder = new TextDecoder()
+      const data: SearchResponse = await res.json()
+      setResponse(data) 
 
-      while (reader) {
-        const { done, value } = await reader.read()
-        if (done) break
-        setResponse(prev => prev + decoder.decode(value))
-      }
     } catch (error) {
-      console.error(error)
-      setResponse('Error: Failed to fetch response')
+      console.error(error);
+      setResponse(null);
     } finally {
       setLoading(false)
     }
@@ -59,8 +61,12 @@ export default function Home() {
       <header className="p-4 flex items-center justify-between border-b">
         <h1 className="text-xl font-semibold">Search.AI</h1>
         <div className="flex gap-2">
-          <Button variant="ghost" className="text-sm">History</Button>
-          <Button variant="ghost" className="text-sm">Sign In</Button>
+          <Button variant="ghost" className="text-sm">
+            History
+          </Button>
+          <Button variant="ghost" className="text-sm">
+            Sign In
+          </Button>
         </div>
       </header>
 
@@ -78,7 +84,7 @@ export default function Home() {
                 className="w-full h-14 text-lg pl-12 pr-20 rounded-lg border-2 focus-visible:ring-0 focus-visible:ring-offset-0"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
               <Button
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg"
@@ -110,9 +116,23 @@ export default function Home() {
       {response && (
         <div className="max-w-3xl mx-auto mt-8 px-4">
           <Card className="p-6 bg-white shadow-none border">
-            <div className="prose max-w-none">
-              {response}
-            </div>
+            <h2 className="text-xl font-semibold">{response.title}</h2>
+            <p className="text-gray-700">{response.summary}</p>
+            <ul className="mt-4 space-y-2">
+              {response.links.map((link, index) => (
+                <li key={index}>
+                  🔗{" "}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    {link.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </Card>
         </div>
       )}
@@ -133,5 +153,5 @@ export default function Home() {
         </div>
       )}
     </div>
-  )
+  );
 }
