@@ -3,6 +3,13 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 import { ArrowRightIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons"
 
 // Define the expected API response format
@@ -10,6 +17,7 @@ interface SearchResponse {
   title: string
   summary: string 
   links: { text: string, url: string }[]
+  related_questions: string[]
 }
 
 export default function Home() {
@@ -62,7 +70,9 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="p-4 flex items-center justify-between border-b">
-        <h1 className="text-xl font-semibold">IntelliSearch</h1>
+        <h1 className="text-xl font-semibold text-purple-400">
+          Intelli <span className="text-purple-800">Search</span>
+        </h1>
         <div className="flex gap-2">
           <Button variant="ghost" className="text-sm">
             History
@@ -89,16 +99,16 @@ export default function Home() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
                 <Button
-                  className="h-10 w-10 rounded-lg"
+                  className="h-10 w-10 rounded-lg bg-purple-700"
                   onClick={handleSearch}
                   disabled={loading || !query.trim()}
                 >
                   <ArrowRightIcon className="h-5 w-5" />
                 </Button>
                 <Button
-                  className="h-10 px-3 rounded-lg"
+                  className="h-10 px-3 rounded-lg bg-purple-400"
                   onClick={handleDeepSearch}
                   disabled={loading || !query.trim()}
                 >
@@ -146,6 +156,25 @@ export default function Home() {
               ))}
             </ul>
           </Card>
+
+          {/* People also ask section with Accordion */}
+          {response.related_questions.length > 0 && (
+            <Card className="p-6 bg-gray-100 shadow-none border mt-6">
+              <h3 className="text-lg font-semibold">People also ask</h3>
+              <Accordion type="single" collapsible>
+              {response.related_questions.map((question, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger>{question}</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-gray-800">
+                      This is the answer to the question: "{question}"
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+            </Card>            
+          )}
         </div>
       )}
 
