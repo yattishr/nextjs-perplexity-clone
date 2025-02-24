@@ -18,6 +18,7 @@ const SearchResponseSchema = z.object({
       url: z.string(),
     })
   ), // List of clickable links
+  related_questions: z.array(z.string()) // List of related questions
 });
 
 // Edge Runtime (optional for better performance)
@@ -83,6 +84,23 @@ export async function POST(req: NextRequest) {
 
     const structuredResponse = aiResponse.choices[0].message.parsed;
 
+    // Step 3: Generate "People also ask" questions using OpenAI
+    const relatedQuestionsResponse = await openai.beta.chat.completions.parse({
+      model: model,
+      messages: [
+        { role: "system", content: "Generate 5 related questions based on the following query." },
+        { role: "user", content: `User searched for: "${query}". What related questions would people ask?` },
+      ],
+      response_format: zodResponseFormat(z.object({ related_questions: z.array(z.string()) }), "related_questions"),
+    });    
+
+    const relatedQuestions = relatedQuestionsResponse.choices[0].message.parsed?.related_questions
+
+    // Append Related Questions to the structured response
+    if (structuredResponse && relatedQuestions) {
+      structuredResponse.related_questions = relatedQuestions;
+    }
+
     return new Response(JSON.stringify(structuredResponse), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -95,4 +113,6 @@ export async function POST(req: NextRequest) {
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
+
+
 }

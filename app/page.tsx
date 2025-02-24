@@ -29,6 +29,11 @@ export default function Home() {
     "S&P 500"
   ]
 
+  const handleDeepSearch = async () => {
+    if (!query.trim()) return
+    console.log('Deep Search:', query)
+  }
+
   const handleSearch = async () => {
     if (!query.trim()) return
     
@@ -42,8 +47,6 @@ export default function Home() {
         body: JSON.stringify({ query })
       })
 
-      // const reader = res.body?.getReader()
-      // const decoder = new TextDecoder()
       const data: SearchResponse = await res.json()
       setResponse(data) 
 
@@ -59,7 +62,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="p-4 flex items-center justify-between border-b">
-        <h1 className="text-xl font-semibold">Search.AI</h1>
+        <h1 className="text-xl font-semibold">IntelliSearch</h1>
         <div className="flex gap-2">
           <Button variant="ghost" className="text-sm">
             History
@@ -86,13 +89,22 @@ export default function Home() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-              <Button
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg"
-                onClick={handleSearch}
-                disabled={loading || !query.trim()}
-              >
-                <ArrowRightIcon className="h-5 w-5" />
-              </Button>
+                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
+                <Button
+                  className="h-10 w-10 rounded-lg"
+                  onClick={handleSearch}
+                  disabled={loading || !query.trim()}
+                >
+                  <ArrowRightIcon className="h-5 w-5" />
+                </Button>
+                <Button
+                  className="h-10 px-3 rounded-lg"
+                  onClick={handleDeepSearch}
+                  disabled={loading || !query.trim()}
+                >
+                  Deep Search
+                </Button>
+              </div>
             </div>
 
             {/* Example Questions */}
