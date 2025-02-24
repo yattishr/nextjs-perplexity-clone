@@ -71,7 +71,7 @@ export default function Home() {
       {/* Header */}
       <header className="p-4 flex items-center justify-between border-b">
         <h1 className="text-xl font-semibold text-purple-400">
-          Intelli <span className="text-purple-800">Search</span>
+          Intelli<span className="text-purple-800">Search</span>
         </h1>
         <div className="flex gap-2">
           <Button variant="ghost" className="text-sm">
@@ -118,12 +118,13 @@ export default function Home() {
             </div>
 
             {/* Example Questions */}
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="text-lg font-semibold">Trending Searches</h3>
+            <div className="grid grid-cols-2 gap-4">            
               {exampleQuestions.map((question, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  className="h-16 justify-start text-left text-sm font-normal hover:bg-gray-50"
+                  className="h-16 justify-start text-left text-sm font-normal hover:bg-gray-50 border border-purple-400"
                   onClick={() => setQuery(question)}
                 >
                   {question}
@@ -188,7 +189,7 @@ export default function Home() {
                 <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
                 <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
               </div>
-              <p className="text-sm text-gray-600">Generating response...</p>
+              <p className="text-md text-blue-600">Hold on—I'm consulting the digital oracle...</p>
             </div>
           </Card>
         </div>
